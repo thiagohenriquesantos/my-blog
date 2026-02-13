@@ -21,8 +21,8 @@ const currentPath = Astro.url.pathname
 const showLanguageSwitcher = moreLocales.length > 0
 // Choose a language switch list according to supported languages
 const nextUrl = supportedLangs.length > 0
-  ? getNextSupportedLangPath(currentPath, supportedLangs) // Use supported languages when available
-  : getNextGlobalLangPath(currentPath) // Fallback to all languages when no supported languages data
+  ? await getNextSupportedLangPath(currentPath, supportedLangs) // Use supported languages when available
+  : await getNextGlobalLangPath(currentPath) // Fallback to all languages when no supported languages data
 ---
 
 <div

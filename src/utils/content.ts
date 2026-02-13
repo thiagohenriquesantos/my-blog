@@ -5,6 +5,44 @@ import { getCollection, render } from 'astro:content'
 import { defaultLocale } from '@/config'
 import { memoize } from '@/utils/cache'
 
+/**
+ * Get the slug for a post, considering language-specific translations
+ *
+ * @param post The post collection entry
+ * @param lang Optional language code to get translated slug
+ * @returns The appropriate slug for the given language
+ */
+export function getPostSlug(post: CollectionEntry<'posts'>, lang?: Language): string {
+  if (lang && post.data.abbrlinkTranslations?.[lang]) {
+    return post.data.abbrlinkTranslations[lang]
+  }
+  return post.data.abbrlink || post.id
+}
+
+/**
+ * Find a post by slug and get its translated slug for a different language
+ *
+ * @param slug Current post slug
+ * @param fromLang Current language
+ * @param toLang Target language to translate slug to
+ * @returns Translated slug if post exists, otherwise original slug
+ */
+export async function getTranslatedPostSlug(slug: string, fromLang: Language, toLang: Language): Promise<string> {
+  const posts = await getCollection('posts')
+  
+  // Find the post by checking all language variations
+  const post = posts.find(p => {
+    const postSlug = getPostSlug(p, fromLang)
+    return postSlug === slug || (p.data.abbrlink || p.id) === slug
+  })
+  
+  if (!post) {
+    return slug // Return original slug if post not found
+  }
+  
+  return getPostSlug(post, toLang)
+}
+
 const metaCache = new Map<string, { minutes: number }>()
 
 /**

@@ -1,6 +1,7 @@
 import type { Language } from '@/i18n/config'
 import { allLocales, base, defaultLocale } from '@/config'
 import { getLangFromPath, getNextGlobalLang } from '@/i18n/lang'
+import { getTranslatedPostSlug } from '@/utils/content'
 
 /**
  * Get path to a specific tag page with language support
@@ -59,10 +60,24 @@ export function getLocalizedPath(path: string, currentLang?: Language) {
  * @param nextLang Next language code to switch to
  * @returns Path for next language
  */
-export function getNextLangPath(currentPath: string, currentLang: Language, nextLang: Language): string {
+export async function getNextLangPath(currentPath: string, currentLang: Language, nextLang: Language): Promise<string> {
   const pathWithoutBase = base && currentPath.startsWith(base)
     ? currentPath.slice(base.length)
     : currentPath
+
+  // Check if this is a post route and translate the slug if needed
+  const postMatch = pathWithoutBase.match(/^\/(?:([a-z-]+)\/)?posts\/([^/]+)\/$/)
+  if (postMatch) {
+    const [, langPrefix, slug] = postMatch
+    const pathLang = langPrefix || defaultLocale
+    
+    // Get the translated slug for the target language
+    const translatedSlug = await getTranslatedPostSlug(slug, pathLang as Language, nextLang)
+    
+    // Build the new path with translated slug
+    const langPath = nextLang === defaultLocale ? '' : `/${nextLang}`
+    return base ? `${base}${langPath}/posts/${translatedSlug}/` : `${langPath}/posts/${translatedSlug}/`
+  }
 
   const pagePath = currentLang === defaultLocale
     ? pathWithoutBase
@@ -77,7 +92,7 @@ export function getNextLangPath(currentPath: string, currentLang: Language, next
  * @param currentPath Current page path
  * @returns Path for next supported language
  */
-export function getNextGlobalLangPath(currentPath: string): string {
+export async function getNextGlobalLangPath(currentPath: string): Promise<string> {
   const currentLang = getLangFromPath(currentPath)
   const nextLang = getNextGlobalLang(currentLang)
   return getNextLangPath(currentPath, currentLang, nextLang)
@@ -90,7 +105,7 @@ export function getNextGlobalLangPath(currentPath: string): string {
  * @param supportedLangs List of supported language codes
  * @returns Path for next supported language
  */
-export function getNextSupportedLangPath(currentPath: string, supportedLangs: Language[]): string {
+export async function getNextSupportedLangPath(currentPath: string, supportedLangs: Language[]): Promise<string> {
   if (supportedLangs.length === 0) {
     return getNextGlobalLangPath(currentPath)
   }

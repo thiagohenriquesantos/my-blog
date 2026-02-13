@@ -10,7 +10,7 @@ import TOC from '@/components/Widgets/TOC.astro'
 import { allLocales } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
-import { checkPostSlugDuplication } from '@/utils/content'
+import { checkPostSlugDuplication, getPostSlug } from '@/utils/content'
 import { getPostDescription } from '@/utils/description'
 
 export async function getStaticPaths() {
@@ -28,20 +28,26 @@ export async function getStaticPaths() {
   const slugToLangsMap = new Map<string, Set<Language>>()
 
   for (const post of posts) {
-    const slug = post.data.abbrlink || post.id
     const lang = post.data.lang
+    
+    // For each locale, get the appropriate slug (considering translations)
+    for (const locale of allLocales) {
+      const slug = getPostSlug(post, locale as Language)
+      
+      let langSet = slugToLangsMap.get(slug)
+      if (!langSet) {
+        langSet = new Set()
+        slugToLangsMap.set(slug, langSet)
+      }
 
-    let langSet = slugToLangsMap.get(slug)
-    if (!langSet) {
-      langSet = new Set()
-      slugToLangsMap.set(slug, langSet)
-    }
-
-    if (lang) {
-      langSet.add(lang as Language)
-    }
-    else {
-      allLocales.forEach(locale => langSet.add(locale))
+      if (lang) {
+        if (lang === locale) {
+          langSet.add(locale as Language)
+        }
+      }
+      else {
+        langSet.add(locale as Language)
+      }
     }
   }
 
@@ -59,7 +65,7 @@ export async function getStaticPaths() {
     // Match current language or universal posts
     .filter(post => post.data.lang === lang || post.data.lang === '')
     .map((post) => {
-      const slug = post.data.abbrlink || post.id
+      const slug = getPostSlug(post, lang as Language)
       return {
         params: { lang: getLangRouteParam(lang), slug },
         props: { post, supportedLangs: slugToLangs[slug] },
@@ -75,7 +81,7 @@ interface Props {
 
 const { post, supportedLangs } = Astro.props
 const currentLang = getLangFromLocale(Astro.currentLocale)
-const slug = post.data.abbrlink || post.id
+const slug = getPostSlug(post, currentLang)
 const description = getPostDescription(post, 'meta')
 const { Content, headings, remarkPluginFrontmatter } = await render(post)
 ---

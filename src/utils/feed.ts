@@ -11,6 +11,7 @@ import { base, defaultLocale, themeConfig } from '@/config'
 import { ui } from '@/i18n/ui'
 import { memoize } from '@/utils/cache'
 import { getPostDescription } from '@/utils/description'
+import { getPostSlug } from '@/utils/content'
 
 const markdownParser = new MarkdownIt()
 const { title, description, i18nTitle, url, author } = themeConfig.site
@@ -155,7 +156,7 @@ export async function generateFeed({ lang }: { lang?: Language } = {}) {
 
   // Add posts to feed
   for (const post of recentPosts) {
-    const slug = post.data.abbrlink || post.id
+    const slug = getPostSlug(post, lang)
     const link = new URL(`posts/${slug}/`, siteURL).toString()
 
     // Optimize content processing

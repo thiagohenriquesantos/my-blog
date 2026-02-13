@@ -24,6 +24,8 @@ const posts = defineCollection({
       abbrlink => !abbrlink || /^[a-z0-9\-]*$/.test(abbrlink),
       { message: 'Abbrlink can only contain lowercase letters, numbers and hyphens' },
     ),
+    abbrlinkTranslations: z.record(z.string()).optional().default({}),
+    // Example: abbrlinkTranslations: { pt: 'assertividade-e-verdade' }
   }),
 })
 
