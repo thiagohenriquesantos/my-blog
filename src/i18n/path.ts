@@ -66,7 +66,7 @@ export async function getNextLangPath(currentPath: string, currentLang: Language
     : currentPath
 
   // Check if this is a post route and translate the slug if needed
-  const postMatch = pathWithoutBase.match(/^\/(?:([a-z-]+)\/)?posts\/([^/]+)\/$/)
+  const postMatch = pathWithoutBase.match(/^\/(?:([a-z-]+)\/)?posts\/(.+?)\/$/)
   if (postMatch) {
     const [, langPrefix, slug] = postMatch
     const pathLang = langPrefix || defaultLocale
