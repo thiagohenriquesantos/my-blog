@@ -175,7 +175,11 @@ export const themeConfig: ThemeConfig = {
       },
       {
         name: 'X',
-        url: 'https://x.com/thiagocolman',
+        url: 'https://x.com/thiago_colman',
+      },
+      {
+        name: 'Instagram',
+        url: 'https://instagram.com/thiagocolman',
       },
     ],
     // year of website start

@@ -39,7 +39,6 @@ Acredito que software de qualidade vai além de escrever código — envolve ent
 
 ## 🌎 Além do código
 
-Sou baseado no Brasil e colaboro com equipes globais.  
 Tenho grande interesse por tecnologia, estratégia de produto, tipografia e experiências digitais bem construídas.
 
 Este blog é um espaço para compartilhar aprendizados sobre engenharia de software, arquitetura, produtividade e reflexões da minha jornada profissional.
