@@ -11,6 +11,7 @@ pin: 99
 lang: pt
 abbrlink: essential-skills-modern-software-engineers
 abbrlinkTranslations:
+  en: essential-skills-modern-software-engineers
   pt: habilidades-essenciais-engenheiros-software
 ---
 
@@ -145,4 +146,4 @@ Mas também construímos quem somos.
 
 **Thiago Colman**  
 Desenvolvedor Full Stack  
-https://thiagocolman.com
+https://thiagocolman.com.br

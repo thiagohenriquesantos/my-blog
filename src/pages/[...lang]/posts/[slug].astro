@@ -7,7 +7,7 @@ import PostDate from '@/components/PostDate.astro'
 import TagList from '@/components/TagList.astro'
 import BackButton from '@/components/Widgets/BackButton.astro'
 import TOC from '@/components/Widgets/TOC.astro'
-import { allLocales } from '@/config'
+import { allLocales, defaultLocale } from '@/config'
 import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
 import Layout from '@/layouts/Layout.astro'
 import { checkPostSlugDuplication, getPostSlug } from '@/utils/content'
@@ -25,28 +25,59 @@ export async function getStaticPaths() {
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // Build a map of post slugs to their supported languages
   // Handles both specific language posts (e.g., 'en') and universal posts (lang: '')
-  const slugToLangsMap = new Map<string, Set<Language>>()
-
+  
+  // Step 1: Group posts that are translations of each other
+  // Posts with the same ID base (excluding -pt suffix) or with abbrlinkTranslations are related
+  const postGroups = new Map<string, CollectionEntry<'posts'>[]>()
+  
   for (const post of posts) {
-    const lang = post.data.lang
-    
-    // For each locale, get the appropriate slug (considering translations)
-    for (const locale of allLocales) {
-      const slug = getPostSlug(post, locale as Language)
-      
-      let langSet = slugToLangsMap.get(slug)
-      if (!langSet) {
-        langSet = new Set()
-        slugToLangsMap.set(slug, langSet)
+    let groupKey = post.id
+    // For PT posts, try to find a matching EN post
+    if (post.id.endsWith('-pt')) {
+      const baseName = post.id.slice(0, -3)
+      const hasEnglishVersion = posts.some(p => p.id === baseName)
+      if (hasEnglishVersion) {
+        groupKey = baseName
       }
-
-      if (lang) {
-        if (lang === locale) {
-          langSet.add(locale as Language)
+    }
+    
+    if (!postGroups.has(groupKey)) {
+      postGroups.set(groupKey, [])
+    }
+    postGroups.get(groupKey)!.push(post)
+  }
+  
+  // Step 2: Build slugToLangs map
+  const slugToLangsMap = new Map<string, Set<Language>>()
+  
+  for (const [, postGroup] of postGroups) {
+    // Collect all languages in this group
+    const supportedLangs = new Set<Language>()
+    const allSlugs = new Set<string>()
+    
+    for (const post of postGroup) {
+      const postLang = (post.data.lang || defaultLocale) as Language
+      supportedLangs.add(postLang)
+      
+      // Add the slug for this post's language
+      const slug = getPostSlug(post, postLang)
+      allSlugs.add(slug)
+      
+      // Add translated slugs
+      if (post.data.abbrlinkTranslations) {
+        for (const translatedSlug of Object.values(post.data.abbrlinkTranslations)) {
+          allSlugs.add(translatedSlug)
         }
       }
-      else {
-        langSet.add(locale as Language)
+    }
+    
+    // Map all slugs to the common set of supported languages
+    for (const slug of allSlugs) {
+      if (!slugToLangsMap.has(slug)) {
+        slugToLangsMap.set(slug, new Set())
+      }
+      for (const lang of supportedLangs) {
+        slugToLangsMap.get(slug)!.add(lang)
       }
     }
   }

@@ -10,6 +10,8 @@ tags:
 pin: 99
 lang: en
 abbrlink: essential-skills-modern-software-engineers
+abbrlinkTranslations:
+  pt: habilidades-essenciais-engenheiros-software
 ---
 
 # Three Essential Skills for Modern Software Engineers

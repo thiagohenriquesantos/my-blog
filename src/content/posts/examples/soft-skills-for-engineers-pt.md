@@ -9,6 +9,7 @@ tags:
 lang: pt
 abbrlink: assertiveness-and-truth
 abbrlinkTranslations:
+  en: assertiveness-and-truth
   pt: assertividade-e-verdade
 ---
 

@@ -8,6 +8,8 @@ tags:
   - Self-Development
 lang: en
 abbrlink: assertiveness-and-truth
+abbrlinkTranslations:
+  pt: assertividade-e-verdade
 ---
 
 There’s a quiet pattern I’ve noticed in myself — and in many professionals I’ve worked with:
