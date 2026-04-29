@@ -7,6 +7,8 @@
 /* Global Styles */
 .heti {
   --at-apply: 'break-words leading-normal hyphens-auto cjk:tracking-wide';
+  max-width: 65ch;
+  line-height: 1.7;
 }
 
 /* Customized Post Title */
@@ -46,6 +48,7 @@
 /* Paragraphs */
 .heti :where(p:not(.no-heti):not(.no-heti *)) {
   --at-apply: 'mb-4 text-pretty cjk:text-justify';
+  line-height: 1.7;
 }
 
 /* Links */

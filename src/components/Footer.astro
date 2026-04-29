@@ -16,6 +16,22 @@ const socialLinks = links.map(({ name, url }) => {
   const isRSS = url === '/atom.xml' || url === '/rss.xml'
   const isEmail = /^[\w.-]+@[\w.-]+\.[a-z]{2,}$/i.test(url)
 
+  // Define aria-label based on link type
+  let ariaLabel = ''
+  if (isRSS) {
+    ariaLabel = 'Subscribe to RSS feed'
+  } else if (isEmail) {
+    ariaLabel = 'Send email'
+  } else {
+    const ariaLabels: Record<string, string> = {
+      'GitHub': 'Visit my GitHub profile',
+      'X': 'Follow me on X (Twitter)',
+      'Instagram': 'Follow me on Instagram',
+      'Email': 'Send me an email'
+    }
+    ariaLabel = ariaLabels[name] || `Visit ${name}`
+  }
+
   if (isRSS) {
     const localizedPath = getLocalizedPath(url, currentLang)
     const href = import.meta.env.DEV
@@ -27,6 +43,7 @@ const socialLinks = links.map(({ name, url }) => {
       href,
       target: '_blank',
       rel: 'noopener noreferrer',
+      'aria-label': ariaLabel,
     }
   }
 
@@ -37,6 +54,7 @@ const socialLinks = links.map(({ name, url }) => {
       href,
       'data-umami-event': 'outbound-link-click',
       'data-umami-event-url': href,
+      'aria-label': ariaLabel,
     }
   }
 
@@ -47,6 +65,7 @@ const socialLinks = links.map(({ name, url }) => {
     'rel': 'noopener noreferrer',
     'data-umami-event': 'outbound-link-click',
     'data-umami-event-url': url,
+    'aria-label': ariaLabel,
   }
 })
 ---

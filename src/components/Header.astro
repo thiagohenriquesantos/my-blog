@@ -1,61 +1,174 @@
 ---
+import type { Language } from '@/i18n/config'
+import LangToggle from '@/components/LangToggle.astro'
+import SearchModal from '@/components/SearchModal.astro'
+import ThemeToggle from '@/components/ThemeToggle.astro'
 import { themeConfig } from '@/config'
 import { ui } from '@/i18n/ui'
 import { getPageInfo } from '@/utils/page'
 
-const { currentLang, getLocalizedPath, isPost } = getPageInfo(Astro.url.pathname)
+interface Props {
+  supportedLangs?: Language[]
+}
+
+const { supportedLangs = [] } = Astro.props
+
+const { currentLang, getLocalizedPath, isHome, isPost, isTag, isAbout } = getPageInfo(Astro.url.pathname)
 const { title, subtitle, i18nTitle } = themeConfig.site
+const {
+  light: { background: lightMode },
+  dark: { background: darkMode },
+} = themeConfig.color
 
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
 const headerTitle = i18nTitle ? currentUI.title : title
 const headerSubtitle = i18nTitle ? currentUI.subtitle : subtitle
 
-const TitleTag = isPost ? 'h2' : 'h1'
-const SubtitleTag = isPost ? 'div' : 'h2'
+const isArticlesActive = isHome || isPost
+
+function getNavItemClass(isActive: boolean) {
+  return isActive ? 'nav-link is-active' : 'nav-link'
+}
+
+const navItems = [
+  { href: '/', label: currentUI.posts ?? 'Artigos', active: isArticlesActive },
+  { href: '/tags/', label: currentUI.tags ?? 'Tags', active: isTag },
+  { href: '/about/', label: currentUI.about ?? 'Sobre', active: isAbout },
+]
 ---
 
-<header
-  class:list={[
-    'lg:(uno-desktop-column top-20) cjk:tracking-wide',
-    isPost
-    ? 'mb-10.8'
-    : 'mb-10.5',
-  ]}
->
-  <TitleTag
-    class:list={[
-      'font-bold font-title',
-      isPost
-        ? `mb-2.8 mt-3 text-5.375 c-secondary lg:(mb-1.8 mt-0 text-9 c-primary)`
-        : `mb-1.8 w-75% text-8 c-primary lg:(w-full text-9)`,
-    ]}
-  >
-    <!-- Fix text cropping issues during view transition on iOS by adding a div tag -->
-    <div
-      class="box-content inline-block pr-1"
-      transition:name={`site-title-${currentLang}`}
-      data-disable-theme-toggle-transition
-    >
+<header class="site-header">
+  <div class="site-header__top">
+    <div class="site-header__brand">
       <a
-        id="site-title-link"
+        class="site-title"
         href={getLocalizedPath('/')}
+        transition:name={`site-title-${currentLang}`}
+        data-disable-theme-toggle-transition
       >
-          {headerTitle}
+        {headerTitle}
       </a>
     </div>
-  </TitleTag>
+
+    <div class="site-header__utilities" aria-label="Site utilities">
+      <SearchModal />
+      <LangToggle supportedLangs={supportedLangs} />
+      <ThemeToggle lightModeColor={lightMode} darkModeColor={darkMode} />
+    </div>
+  </div>
 
   {headerSubtitle && (
-    <SubtitleTag
-      class:list={[
-        'text-3.5 c-secondary font-navbar lg:text-4',
-        isPost
-        ? `op-0 lg:op-100`
-        : 'w-75% lg:w-full',
-      ]}
-      aria-hidden={isPost}
-    >
+    <p class="site-description">
       {headerSubtitle}
-    </SubtitleTag>
+    </p>
   )}
+
+  <nav class="site-nav" aria-label="Primary navigation">
+    <ul class="site-nav__list">
+      {navItems.map(item => (
+        <li>
+          <a
+            href={getLocalizedPath(item.href)}
+            class={getNavItemClass(item.active)}
+            aria-current={item.active ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
 </header>
+
+<style>
+  .site-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .site-header__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .site-title {
+    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .site-title:hover {
+    opacity: 0.85;
+  }
+
+  .site-header__utilities {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+  }
+
+  .site-description {
+    margin: 0.75rem 0 1rem;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 70ch;
+    text-wrap: pretty;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: auto;
+  }
+
+  .site-nav {
+    margin-top: 0.25rem;
+  }
+
+  .site-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-link {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease, opacity 0.2s ease;
+    padding: 0.15rem 0;
+  }
+
+  .nav-link:hover {
+    color: var(--text-color);
+  }
+
+  .nav-link.is-active {
+    color: var(--text-color);
+  }
+
+  @media (max-width: 520px) {
+    .site-header__top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .site-title {
+      font-size: 1.6rem;
+      white-space: normal;
+    }
+    .site-header__utilities {
+      justify-content: flex-start;
+    }
+  }
+</style>

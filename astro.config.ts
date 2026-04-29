@@ -2,6 +2,7 @@ import mdx from '@astrojs/mdx'
 import partytown from '@astrojs/partytown'
 import sitemap from '@astrojs/sitemap'
 import Compress from 'astro-compress'
+import pagefind from 'astro-pagefind'
 import { defineConfig } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
 import rehypeMermaid from 'rehype-mermaid'
@@ -51,7 +52,13 @@ export default defineConfig({
         forward: ['dataLayer.push', 'gtag'],
       },
     }),
-    sitemap(),
+    sitemap({
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date(),
+      filter: (page) => !page.includes('/og/'), // Exclude OG image pages
+    }),
+    pagefind(),
     Compress({
       CSS: true,
       HTML: true,

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Block access to admin areas if any
+Disallow: /admin/
+Disallow: /api/
+
+# Block access to generated OG images
+Disallow: /og/
+
+# Sitemap
+Sitemap: https://thiagocolman.com/sitemap-index.xml

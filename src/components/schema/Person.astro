@@ -1,0 +1,37 @@
+---
+// Person Schema Markup Component
+interface Props {
+  name: string
+  jobTitle?: string
+  url?: string
+  sameAs?: string[]
+  image?: string
+  description?: string
+}
+
+const {
+  name,
+  jobTitle = "Full Stack Developer",
+  url = "https://thiagocolman.com",
+  sameAs = [
+    "https://github.com/thiagohenriquesantos",
+    "https://x.com/thiago_colman",
+    "https://instagram.com/thiagocolman"
+  ],
+  image = "https://thiagocolman.com/avatar.jpg",
+  description = "Full Stack Developer passionate about technology, philosophy, and creating meaningful digital experiences."
+} = Astro.props
+
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": name,
+  "jobTitle": jobTitle,
+  "url": url,
+  "sameAs": sameAs,
+  "image": image,
+  "description": description
+}
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(personSchema)}></script>

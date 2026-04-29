@@ -1,0 +1,34 @@
+// Example usage in a blog post page (e.g., src/pages/posts/[slug].astro)
+
+---
+// Import the schema components
+import BlogPosting from '@/components/schema/BlogPosting.astro'
+
+// Get your post data (this would come from your content collection)
+const post = // your post data
+const postTitle = post.data.title
+const postDescription = post.data.description
+const publishedDate = post.data.published.toISOString()
+const imageUrl = `https://thiagocolman.com/og/${post.slug}.png`
+const postUrl = `https://thiagocolman.com/posts/${post.slug}/`
+---
+
+<Layout
+  title={postTitle}
+  description={postDescription}
+  image={imageUrl}
+  articleDate={publishedDate}
+>
+  <!-- Your post content -->
+
+  <!-- Add structured data -->
+  <BlogPosting
+    headline={postTitle}
+    description={postDescription}
+    datePublished={publishedDate}
+    author={{ name: "Thiago Colman" }}
+    image={imageUrl}
+    url={postUrl}
+    tags={post.data.tags}
+  />
+</Layout>

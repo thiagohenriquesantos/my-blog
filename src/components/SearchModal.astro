@@ -1,0 +1,270 @@
+---
+// SearchModal.astro
+// Minimal, accessible Pagefind modal that lazy-loads Pagefind UI on open.
+---
+
+<button
+  type="button"
+  class="search-button"
+  aria-label="Open search"
+  data-search-trigger
+>
+  <svg
+    class="search-icon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="11" cy="11" r="7"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+</button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search dialog">
+  <div class="search-dialog__inner">
+    <div class="search-dialog__header">
+      <div class="search-dialog__title">Search</div>
+      <button type="button" class="search-dialog__close" aria-label="Close search" data-search-close>
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+
+    <div class="search-dialog__body">
+      <div id="pagefind-modal-root" class="search-container" />
+    </div>
+  </div>
+</dialog>
+
+<script is:inline>
+  ;(() => {
+    const dialog = document.querySelector('[data-search-dialog]')
+    const trigger = document.querySelector('[data-search-trigger]')
+    const closeBtn = document.querySelector('[data-search-close]')
+
+    if (!(dialog instanceof HTMLDialogElement) || !(trigger instanceof HTMLButtonElement)) return
+
+    let lastActive = null
+    let pagefindLoaded = false
+
+    function loadPagefindCSS() {
+      if (document.getElementById('pagefind-styles')) return
+      const link = document.createElement('link')
+      link.id = 'pagefind-styles'
+      link.rel = 'stylesheet'
+      link.href = '/pagefind/pagefind-ui.css'
+      document.head.appendChild(link)
+    }
+
+    function loadPagefindJS() {
+      if (document.getElementById('pagefind-script')) return
+      const script = document.createElement('script')
+      script.id = 'pagefind-script'
+      script.src = '/pagefind/pagefind-ui.js'
+      script.onload = () => { 
+        pagefindLoaded = true
+        // Try to init after load
+        initPagefind()
+      }
+      document.head.appendChild(script)
+    }
+
+    function initPagefind() {
+      const root = document.getElementById('pagefind-modal-root')
+      if (!root || root.dataset.pagefindInitialized) return
+      root.dataset.pagefindInitialized = 'true'
+
+      // Wait for PagefindUI to be available
+      function tryInit() {
+        if (typeof window.PagefindUI !== 'undefined') {
+          new window.PagefindUI({
+            element: '#pagefind-modal-root',
+            showImages: false,
+            showEmptyFilters: false,
+            translations: {
+              placeholder: 'Search posts...',
+              clear_search: 'Clear',
+              load_more: 'Load more results',
+              search_label: 'Search this site',
+              filters_label: 'Filters',
+              zero_results: 'No results for [SEARCH_TERM]',
+              many_results: '[COUNT] results for [SEARCH_TERM]',
+              one_result: '[COUNT] result for [SEARCH_TERM]',
+              searching: 'Searching for [SEARCH_TERM]...',
+            },
+          })
+
+          // Focus the input after initialization
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              const input = root.querySelector('input[type="search"], .pagefind-ui__search-input')
+              if (input instanceof HTMLInputElement) {
+                input.focus()
+                input.select?.()
+              }
+            }, 100)
+          })
+        } else {
+          // Retry after a short delay
+          setTimeout(tryInit, 100)
+        }
+      }
+      tryInit()
+    }
+
+    function open() {
+      lastActive = document.activeElement
+      loadPagefindCSS()
+      loadPagefindJS()
+      dialog.showModal()
+    }
+
+    function close() {
+      dialog.close()
+    }
+
+    trigger.addEventListener('click', open)
+    closeBtn?.addEventListener('click', close)
+
+    dialog.addEventListener('close', () => {
+      if (lastActive && lastActive instanceof HTMLElement) lastActive.focus()
+      lastActive = null
+    })
+
+    dialog.addEventListener('click', (e) => {
+      const inner = dialog.querySelector('.search-dialog__inner')
+      if (!(inner instanceof HTMLElement)) return
+      if (e.target === dialog) close()
+    })
+  })()
+</script>
+
+<style>
+  .search-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0.375rem;
+    color: var(--un-preset-theme-colors-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease-out;
+  }
+
+  .search-button:hover {
+    color: var(--un-preset-theme-colors-primary);
+  }
+
+  .search-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .search-dialog {
+    z-index: 20000;
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(42rem, calc(100vw - 2rem));
+    max-width: 42rem;
+    padding: 0;
+    border: none;
+    border-radius: 0.9rem;
+    background: transparent;
+    pointer-events: auto;
+  }
+
+  .search-dialog::backdrop {
+    background: oklch(0% 0 0 / 0.55);
+    pointer-events: auto;
+  }
+
+  html.dark .search-dialog::backdrop {
+    background: oklch(0% 0 0 / 0.65);
+  }
+
+  .search-dialog__inner {
+    position: relative;
+    z-index: 1;
+    border-radius: 0.9rem;
+    background: var(--un-preset-theme-colors-background);
+    border: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.12);
+    box-shadow: 0 24px 80px oklch(0% 0 0 / 0.35);
+    overflow: hidden;
+    pointer-events: auto;
+  }
+
+  .search-dialog__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid oklch(var(--un-preset-theme-colors-secondary) / 0.10);
+  }
+
+  .search-dialog__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--un-preset-theme-colors-secondary);
+  }
+
+  .search-dialog__close {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--un-preset-theme-colors-secondary);
+    transition: color 0.2s ease-out, background-color 0.2s ease-out;
+  }
+
+  .search-dialog__close:hover {
+    color: var(--un-preset-theme-colors-primary);
+    background: oklch(var(--un-preset-theme-colors-secondary) / 0.06);
+  }
+
+  .search-dialog__body {
+    padding: 1rem;
+  }
+
+  /* Ensure the input is always interactive (defensive) */
+  .search-container :global(.pagefind-ui__search-input) {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto !important;
+  }
+
+  .search-container :global(.pagefind-ui) {
+    --pagefind-ui-scale: 1;
+    --pagefind-ui-primary: var(--un-preset-theme-colors-primary);
+    --pagefind-ui-text: var(--un-preset-theme-colors-secondary);
+    --pagefind-ui-background: transparent;
+    --pagefind-ui-border: oklch(var(--un-preset-theme-colors-secondary) / 0.18);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 0.7rem;
+  }
+
+  /* Additional defensive styles for Pagefind input */
+  .search-container :global(.pagefind-ui__search) {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 100 !important;
+  }
+
+  .search-container :global(input) {
+    pointer-events: auto !important;
+  }
+
+  .search-container :global(.pagefind-ui__drawer) {
+    pointer-events: auto;
+  }
+</style>

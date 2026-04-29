@@ -1,0 +1,112 @@
+---
+// LangToggle.astro
+// Pathname-driven language toggle (EN/PT) with muted active state.
+// Rules:
+// - "/" => en
+// - "/pt/..." => pt
+
+const currentPathname = Astro.url.pathname
+
+const isPortuguesePath =
+  currentPathname === '/pt'
+  || currentPathname === '/pt/'
+  || currentPathname.startsWith('/pt/')
+
+const currentLang = isPortuguesePath ? 'pt' : 'en'
+
+function ensureTrailingSlash(pathname: string) {
+  if (pathname === '') return '/'
+  return pathname.endsWith('/') ? pathname : `${pathname}/`
+}
+
+function stripPtPrefix(pathname: string) {
+  if (pathname === '/pt' || pathname === '/pt/') return '/'
+  if (pathname.startsWith('/pt/')) {
+    const stripped = pathname.slice('/pt'.length) // keep leading slash
+    return stripped === '' ? '/' : stripped
+  }
+  return pathname || '/'
+}
+
+function addPtPrefix(pathname: string) {
+  if (pathname === '/' || pathname === '') return '/pt/'
+  if (pathname === '/pt' || pathname === '/pt/') return '/pt/'
+  if (pathname.startsWith('/pt/')) return pathname
+  return `/pt${pathname.startsWith('/') ? '' : '/'}${pathname}`
+}
+
+// Preserve current route while switching languages
+const enHref = ensureTrailingSlash(stripPtPrefix(currentPathname))
+const ptHref = ensureTrailingSlash(addPtPrefix(currentPathname))
+
+const isEnglish = currentLang === 'en'
+const isPortuguese = currentLang === 'pt'
+---
+
+<div class="lang-toggle" aria-label="Language switcher">
+  <a
+    href={enHref}
+    class:list={['lang-option', isEnglish ? 'is-active' : 'is-inactive']}
+    aria-label="Alternate version in English"
+    aria-current={isEnglish ? 'page' : undefined}
+  >
+    EN
+  </a>
+  <span class="lang-separator" aria-hidden="true">·</span>
+  <a
+    href={ptHref}
+    class:list={['lang-option', isPortuguese ? 'is-active' : 'is-inactive']}
+    aria-label="Alternate version in Portuguese"
+    aria-current={isPortuguese ? 'page' : undefined}
+  >
+    PT
+  </a>
+</div>
+
+<style>
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+  }
+
+  .lang-option {
+    display: inline-block;
+    padding: 0.2rem 0.25rem;
+    text-decoration: none;
+    color: var(--un-preset-theme-colors-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s ease-out, color 0.2s ease-out;
+    border-radius: 0.3rem;
+  }
+
+  .lang-option:hover {
+    color: var(--un-preset-theme-colors-primary);
+  }
+
+  /* Active: high contrast + weight */
+  .lang-option.is-active {
+    opacity: 1;
+    color: var(--un-preset-theme-colors-primary);
+    font-weight: 700;
+    cursor: default;
+  }
+
+  /* Inactive: clearly secondary but clickable */
+  .lang-option.is-inactive {
+    opacity: 0.5;
+  }
+
+  .lang-option:focus-visible {
+    outline: 2px solid var(--un-preset-theme-colors-primary);
+    outline-offset: 2px;
+  }
+
+  .lang-separator {
+    opacity: 0.4;
+    user-select: none;
+  }
+</style>

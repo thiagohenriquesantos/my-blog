@@ -1,9 +1,60 @@
+/* ==========================================================================
+   Explicit theme variables (robust contrast)
+   - Uses only `html.dark` as the switch
+   - Also overrides `--un-preset-theme-colors-*` so existing components stay consistent
+   ========================================================================== */
+:root {
+  /* Base tokens */
+  --bg-color: #fafafa;
+  --text-color: #141414;
+  --text-muted: #4b4b4b;
+  --border-color: rgba(20, 20, 20, 0.12);
+  --surface-color: rgba(20, 20, 20, 0.04);
+  --highlight-color: rgba(255, 213, 102, 0.55);
+
+  /* Bridge to existing Uno preset vars used across the theme */
+  --un-preset-theme-colors-background: var(--bg-color);
+  --un-preset-theme-colors-primary: var(--text-color);
+  --un-preset-theme-colors-secondary: var(--text-muted);
+  --un-preset-theme-colors-highlight: var(--highlight-color);
+}
+
+html.dark {
+  --bg-color: #121212;
+  --text-color: #f5f5f5;
+  --text-muted: #bdbdbd;
+  --border-color: rgba(245, 245, 245, 0.14);
+  --surface-color: rgba(245, 245, 245, 0.06);
+  --highlight-color: rgba(255, 213, 102, 0.28);
+
+  --un-preset-theme-colors-background: var(--bg-color);
+  --un-preset-theme-colors-primary: var(--text-color);
+  --un-preset-theme-colors-secondary: var(--text-muted);
+  --un-preset-theme-colors-highlight: var(--highlight-color);
+}
+
 html {
-  --at-apply: 'bg-background c-secondary antialiased';
+  background: var(--bg-color);
+  color: var(--text-muted);
+  color-scheme: light;
+  --at-apply: 'antialiased';
   scrollbar-width: thin;
-  scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0.25) transparent;
+  scrollbar-color: rgba(75, 75, 75, 0.25) transparent;
   scrollbar-gutter: stable;
   text-autospace: normal;
+}
+
+html.dark {
+  color-scheme: dark;
+  scrollbar-color: rgba(189, 189, 189, 0.25) transparent;
+}
+
+body {
+  background: transparent;
+}
+
+a {
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 /* Fix Flash Issue On iOS */
@@ -88,4 +139,25 @@ html.dark .code-copy-button.copied {
 }
 .code-copy-button.copied .icon-check {
   --at-apply: 'op-100';
+}
+
+/* Focus Styles for Keyboard Navigation >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+*:focus-visible {
+  outline: 2px solid var(--un-preset-theme-colors-primary);
+  outline-offset: 2px;
+}
+
+/* Ensure buttons and links have visible focus */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--un-preset-theme-colors-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users, keep for keyboard */
+*:focus:not(:focus-visible) {
+  outline: none;
 }
