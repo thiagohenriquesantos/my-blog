@@ -27,17 +27,41 @@ export async function getStaticPaths() {
   // Handles both specific language posts (e.g., 'en') and universal posts (lang: '')
   
   // Step 1: Group posts that are translations of each other
-  // Posts with the same ID base (excluding -pt suffix) or with abbrlinkTranslations are related
+  // Posts can be related by: same ID base (excluding -pt suffix) or via abbrlinkTranslations
   const postGroups = new Map<string, CollectionEntry<'posts'>[]>()
+  
+  // First pass: create groups based on abbrlinkTranslations
+  const slugToPostMap = new Map<string, CollectionEntry<'posts'>>()
+  for (const post of posts) {
+    const slug = getPostSlug(post, post.data.lang as Language || defaultLocale as Language)
+    slugToPostMap.set(slug, post)
+  }
   
   for (const post of posts) {
     let groupKey = post.id
-    // For PT posts, try to find a matching EN post
+    
+    // Handle -pt suffix pattern
     if (post.id.endsWith('-pt')) {
       const baseName = post.id.slice(0, -3)
       const hasEnglishVersion = posts.some(p => p.id === baseName)
       if (hasEnglishVersion) {
         groupKey = baseName
+      }
+    }
+    
+    // Handle abbrlinkTranslations pattern - find related posts via translation mappings
+    if (post.data.abbrlinkTranslations) {
+      // Check if this post's slug is referenced as a translation in another post
+      const postSlug = getPostSlug(post, post.data.lang as Language || defaultLocale as Language)
+      for (const otherPost of posts) {
+        if (otherPost.id === post.id) continue
+        const otherSlug = getPostSlug(otherPost, otherPost.data.lang as Language || defaultLocale as Language)
+        const translations = otherPost.data.abbrlinkTranslations
+        if (translations && Object.values(translations).includes(postSlug)) {
+          // This post is a translation target of another post, use the same group
+          groupKey = otherPost.id
+          break
+        }
       }
     }
     

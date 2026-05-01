@@ -1,12 +1,20 @@
 ---
 // LangToggle.astro
-// Pathname-driven language toggle (EN/PT) with muted active state.
-// Rules:
-// - "/" => en
-// - "/pt/..." => pt
+// Language toggle (EN/PT) with support for post-specific translations.
+// Uses supportedLangs prop to determine available translations for the current post.
+
+import { getNextLangPath } from '@/i18n/path'
+import type { Language } from '@/i18n/config'
+
+interface Props {
+  supportedLangs?: Language[]
+}
+
+const { supportedLangs = [] } = Astro.props
 
 const currentPathname = Astro.url.pathname
 
+// Determine current language from pathname
 const isPortuguesePath =
   currentPathname === '/pt'
   || currentPathname === '/pt/'
@@ -14,53 +22,44 @@ const isPortuguesePath =
 
 const currentLang = isPortuguesePath ? 'pt' : 'en'
 
-function ensureTrailingSlash(pathname: string) {
-  if (pathname === '') return '/'
-  return pathname.endsWith('/') ? pathname : `${pathname}/`
-}
+// If supportedLangs is provided, use it to determine available languages
+// Otherwise, fall back to showing both EN and PT
+const hasMultipleLangs = supportedLangs.length > 1
+const showEn = hasMultipleLangs ? supportedLangs.includes('en') : true
+const showPt = hasMultipleLangs ? supportedLangs.includes('pt') : true
 
-function stripPtPrefix(pathname: string) {
-  if (pathname === '/pt' || pathname === '/pt/') return '/'
-  if (pathname.startsWith('/pt/')) {
-    const stripped = pathname.slice('/pt'.length) // keep leading slash
-    return stripped === '' ? '/' : stripped
-  }
-  return pathname || '/'
-}
-
-function addPtPrefix(pathname: string) {
-  if (pathname === '/' || pathname === '') return '/pt/'
-  if (pathname === '/pt' || pathname === '/pt/') return '/pt/'
-  if (pathname.startsWith('/pt/')) return pathname
-  return `/pt${pathname.startsWith('/') ? '' : '/'}${pathname}`
-}
-
-// Preserve current route while switching languages
-const enHref = ensureTrailingSlash(stripPtPrefix(currentPathname))
-const ptHref = ensureTrailingSlash(addPtPrefix(currentPathname))
+// Get the correct href for each language using the translation function
+const enHref = showEn ? await getNextLangPath(currentPathname, currentLang as Language, 'en') : null
+const ptHref = showPt ? await getNextLangPath(currentPathname, currentLang as Language, 'pt') : null
 
 const isEnglish = currentLang === 'en'
 const isPortuguese = currentLang === 'pt'
 ---
 
 <div class="lang-toggle" aria-label="Language switcher">
-  <a
-    href={enHref}
-    class:list={['lang-option', isEnglish ? 'is-active' : 'is-inactive']}
-    aria-label="Alternate version in English"
-    aria-current={isEnglish ? 'page' : undefined}
-  >
-    EN
-  </a>
-  <span class="lang-separator" aria-hidden="true">·</span>
-  <a
-    href={ptHref}
-    class:list={['lang-option', isPortuguese ? 'is-active' : 'is-inactive']}
-    aria-label="Alternate version in Portuguese"
-    aria-current={isPortuguese ? 'page' : undefined}
-  >
-    PT
-  </a>
+  {showEn && (
+    <a
+      href={enHref ?? '#'}
+      class:list={['lang-option', isEnglish ? 'is-active' : 'is-inactive', !enHref && 'is-disabled']}
+      aria-label="Alternate version in English"
+      aria-current={isEnglish ? 'page' : undefined}
+      data-disable={!enHref ? 'true' : undefined}
+    >
+      EN
+    </a>
+  )}
+  {showEn && showPt && <span class="lang-separator" aria-hidden="true">·</span>}
+  {showPt && (
+    <a
+      href={ptHref ?? '#'}
+      class:list={['lang-option', isPortuguese ? 'is-active' : 'is-inactive', !ptHref && 'is-disabled']}
+      aria-label="Alternate version in Portuguese"
+      aria-current={isPortuguese ? 'page' : undefined}
+      data-disable={!ptHref ? 'true' : undefined}
+    >
+      PT
+    </a>
+  )}
 </div>
 
 <style>
@@ -98,6 +97,13 @@ const isPortuguese = currentLang === 'pt'
   /* Inactive: clearly secondary but clickable */
   .lang-option.is-inactive {
     opacity: 0.5;
+  }
+
+  /* Disabled: not clickable, very muted */
+  .lang-option.is-disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   .lang-option:focus-visible {
