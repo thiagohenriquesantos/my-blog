@@ -93,15 +93,34 @@ function lazySetupWaline() {
     document.head.appendChild(link)
   }
 
-  walineObserver = new IntersectionObserver((entries) => {
-    if (entries.some(entry => entry.isIntersecting)) {
-      setupWaline()
-      walineObserver?.disconnect()
+  function onVisible() {
+    setupWaline()
+    if (walineObserver) {
+      walineObserver.disconnect()
       walineObserver = null
     }
-  }, { rootMargin: '500px' })
+  }
 
-  walineObserver.observe(walineContainer)
+  if ('IntersectionObserver' in window) {
+    walineObserver = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        onVisible()
+      }
+    }, { rootMargin: '500px' })
+
+    walineObserver.observe(walineContainer)
+    return
+  }
+
+  const loadWaline = () => {
+    requestIdleCallback ? requestIdleCallback(setupWaline, { timeout: 3000 }) : setupWaline()
+  }
+
+  if (document.readyState === 'complete') {
+    loadWaline()
+  } else {
+    (window as Window).addEventListener('load', loadWaline, { once: true })
+  }
 }
 
 function cleanupWaline() {

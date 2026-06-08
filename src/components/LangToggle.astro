@@ -4,6 +4,7 @@
 // Uses supportedLangs prop to determine available translations for the current post.
 
 import { getNextLangPath } from '@/i18n/path'
+import { getLangFromPath } from '@/i18n/lang'
 import type { Language } from '@/i18n/config'
 
 interface Props {
@@ -13,14 +14,7 @@ interface Props {
 const { supportedLangs = [] } = Astro.props
 
 const currentPathname = Astro.url.pathname
-
-// Determine current language from pathname
-const isPortuguesePath =
-  currentPathname === '/pt'
-  || currentPathname === '/pt/'
-  || currentPathname.startsWith('/pt/')
-
-const currentLang = isPortuguesePath ? 'pt' : 'en'
+const currentLang = getLangFromPath(currentPathname)
 
 // If supportedLangs is provided, use it to determine available languages
 // Otherwise, fall back to showing both EN and PT
@@ -36,7 +30,7 @@ const isEnglish = currentLang === 'en'
 const isPortuguese = currentLang === 'pt'
 ---
 
-<div class="lang-toggle" aria-label="Language switcher">
+<nav class="lang-toggle" aria-label="Language switcher">
   {showEn && (
     <a
       href={enHref ?? '#'}
@@ -60,7 +54,7 @@ const isPortuguese = currentLang === 'pt'
       PT
     </a>
   )}
-</div>
+</nav>
 
 <style>
   .lang-toggle {

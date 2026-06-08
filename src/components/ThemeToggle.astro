@@ -13,6 +13,8 @@ const { lightModeColor = 'oklch(98% 0.001 0)', darkModeColor = 'oklch(12% 0.01 0
   id="theme-toggle-button"
   class="theme-toggle"
   aria-label="Toggle Dark Mode"
+  aria-pressed="false"
+  title="Toggle color mode"
   data-light-mode={lightModeColor}
   data-dark-mode={darkModeColor}
   data-theme-toggle
@@ -65,8 +67,12 @@ const { lightModeColor = 'oklch(98% 0.001 0)', darkModeColor = 'oklch(12% 0.01 0
       }
 
       const btn = document.querySelector('[data-theme-toggle]')
-      const light = btn && btn.dataset ? btn.dataset.lightMode : null
-      const dark = btn && btn.dataset ? btn.dataset.darkMode : null
+      const light = btn?.dataset?.lightMode ?? null
+      const dark = btn?.dataset?.darkMode ?? null
+      if (btn instanceof HTMLElement) {
+        btn.setAttribute('aria-pressed', isDark ? 'true' : 'false')
+      }
+
       const meta = document.head.querySelector('meta[name="theme-color"]')
       if (meta && light && dark) meta.setAttribute('content', isDark ? dark : light)
     }

@@ -24,10 +24,10 @@
   </svg>
 </button>
 
-<dialog class="search-dialog" data-search-dialog aria-label="Search dialog">
+<dialog class="search-dialog" data-search-dialog aria-modal="true" role="dialog" aria-labelledby="search-dialog-title">
   <div class="search-dialog__inner">
     <div class="search-dialog__header">
-      <div class="search-dialog__title">Search</div>
+      <div id="search-dialog-title" class="search-dialog__title">Search</div>
       <button type="button" class="search-dialog__close" aria-label="Close search" data-search-close>
         <span aria-hidden="true">×</span>
       </button>
@@ -48,7 +48,6 @@
     if (!(dialog instanceof HTMLDialogElement) || !(trigger instanceof HTMLButtonElement)) return
 
     let lastActive = null
-    let pagefindLoaded = false
 
     function loadPagefindCSS() {
       if (document.getElementById('pagefind-styles')) return
@@ -65,7 +64,6 @@
       script.id = 'pagefind-script'
       script.src = '/pagefind/pagefind-ui.js'
       script.onload = () => { 
-        pagefindLoaded = true
         // Try to init after load
         initPagefind()
       }
@@ -120,6 +118,12 @@
       loadPagefindCSS()
       loadPagefindJS()
       dialog.showModal()
+      requestAnimationFrame(() => {
+        const closeButton = dialog.querySelector('[data-search-close]')
+        if (closeButton instanceof HTMLElement) {
+          closeButton.focus()
+        }
+      })
     }
 
     function close() {
@@ -132,6 +136,11 @@
     dialog.addEventListener('close', () => {
       if (lastActive && lastActive instanceof HTMLElement) lastActive.focus()
       lastActive = null
+    })
+
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault()
+      close()
     })
 
     dialog.addEventListener('click', (e) => {

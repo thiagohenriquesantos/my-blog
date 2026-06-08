@@ -31,21 +31,15 @@ const twikooConfig = {
   id="twikoo-wrapper"
   class="no-heti mt-16"
   data-config={JSON.stringify(twikooConfig)}
+  data-twikoo-js={twikooJS}
 >
   <div id="twikoo" />
 </div>
 
 <!-- Twikoo Script >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> -->
-<script
-  is:inline
-  src={twikooJS}
-></script>
-
-<script>
-declare const twikoo: any
-
-let twikooObserver: IntersectionObserver | null = null
-let twikooWrapper: HTMLElement | null = null
+<script is:inline>
+let twikooObserver = null
+let twikooWrapper = null
 
 function setupTwikoo() {
   const twikooWrapper = document.getElementById('twikoo-wrapper')
@@ -88,11 +82,34 @@ function lazySetupTwikoo() {
     document.head.appendChild(link)
   }
 
+  function loadTwikooScript(callback) {
+    if (document.getElementById('twikoo-script')) {
+      callback()
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = 'twikoo-script'
+    const twikooScriptUrl = twikooWrapper?.dataset?.twikooJs || ''
+    if (!twikooScriptUrl) {
+      console.error('[Twikoo] Missing script URL')
+      return
+    }
+    script.src = twikooScriptUrl
+    script.async = true
+    script.onload = callback
+    document.body.appendChild(script)
+  }
+
+  function onVisible() {
+    loadTwikooScript(setupTwikoo)
+    twikooObserver?.disconnect()
+    twikooObserver = null
+  }
+
   twikooObserver = new IntersectionObserver((entries) => {
     if (entries.some(entry => entry.isIntersecting)) {
-      setupTwikoo()
-      twikooObserver?.disconnect()
-      twikooObserver = null
+      onVisible()
     }
   }, { rootMargin: '500px' })
 

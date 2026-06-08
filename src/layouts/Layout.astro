@@ -44,10 +44,11 @@ const MarginBottom = isPost && themeConfig.comment.enabled
 >
   <Head {title} {description} {image} {articleDate} />
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     {isPost && <ReadingProgress />}
     <div class="site-shell">
       <Header supportedLangs={supportedLangs} />
-      <main class={MarginBottom}>
+      <main id="main-content" class={MarginBottom}>
         <slot />
       </main>
       <Footer />
@@ -67,6 +68,27 @@ const MarginBottom = isPost && themeConfig.comment.enabled
     max-width: 72rem;
     margin: 0 auto;
     padding: 2.25rem 1.25rem 3.25rem;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--un-preset-theme-colors-background);
+    color: var(--un-preset-theme-colors-primary);
+    transform: translateY(-110%);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    opacity: 0.95;
+    z-index: 9999;
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid var(--un-preset-theme-colors-primary);
+    outline-offset: 4px;
   }
 
   @media (min-width: 768px) {

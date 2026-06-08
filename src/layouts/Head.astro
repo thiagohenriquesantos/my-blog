@@ -1,9 +1,10 @@
 ---
-import { ClientRouter } from 'astro:transitions'
+import type { Language } from '@/i18n/config'
 import katexCSS from 'katex/dist/katex.min.css?url'
-import { allLocales, base, defaultLocale, themeConfig } from '@/config'
+import { base, defaultLocale, themeConfig } from '@/config'
 import { ui } from '@/i18n/ui'
 import { getPageInfo } from '@/utils/page'
+import { getCanonicalUrl, getAlternateLinks, getOgLocale } from '@/utils/seo'
 
 interface Props {
   title?: string
@@ -18,8 +19,11 @@ const { currentLang } = getPageInfo(Astro.url.pathname)
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
 const lang = currentLang === defaultLocale ? '' : `${currentLang}/`
 
-// Generate Canonical URL
-const canonicalURL = new URL(Astro.url.pathname, Astro.url.origin).toString()
+// Generate Canonical URL and localized alternate links
+const canonicalURL = getCanonicalUrl(Astro.url.pathname, Astro.url.origin)
+const alternateLinks = getAlternateLinks(Astro.url.pathname, Astro.url.origin)
+const xDefaultHref = alternateLinks.find(link => link.lang === defaultLocale)?.href ?? canonicalURL
+const ogLocale = getOgLocale(getPageInfo(Astro.url.pathname).currentLang)
 
 // Site Configuration
 const { title, subtitle, description, i18nTitle, author, favicon } = themeConfig.site
@@ -64,9 +68,6 @@ const finalImage = pageImage || (postSlug
 <meta name="generator" content={Astro.generator} />
 <meta name="theme-color" content={metaTheme} />
 
-<!-- Canonical URL -->
-<link rel="canonical" href={canonicalURL} />
-
 <!-- Preload -->
 <link rel="preload" href={`${base}/fonts/EarlySummer-VF-Split/EarlySummer-VF-Subset.woff2`} as="font" type="font/woff2" crossorigin />
 <link rel="preload" href={`${base}/fonts/Snell-Black-SF.woff2`} as="font" type="font/woff2" crossorigin />
@@ -76,21 +77,22 @@ const finalImage = pageImage || (postSlug
 {katexEnabled && <link rel="stylesheet" href={katexCSS} media="print" onload={`this.media='all'`} />}
 
 <!-- Site Links -->
-<link rel="canonical" href={Astro.url} />
+<link rel="canonical" href={canonicalURL} />
 <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
 <link rel="alternate" href={`${base}/rss.xml`} type="application/rss+xml" title="RSS Feed" />
 <link rel="alternate" href={`${base}/atom.xml`} type="application/atom+xml" title="Atom Feed" />
-{allLocales.map(lang => (
-  <link
-    rel="alternate"
-    href={`${Astro.url.origin}${base}${lang === defaultLocale ? '' : `/${lang}/`}`}
-    hreflang={lang === 'zh-tw' ? 'zh-TW' : lang}
-  />
+<link rel="alternate" href={xDefaultHref} hreflang="x-default" />
+{alternateLinks.map(({ href, hreflang }) => (
+  <link rel="alternate" href={href} hreflang={hreflang} />
 ))}
 
 <!-- Open Graph -->
 <meta property="og:type" content={articleDate ? 'article' : 'website'} />
 <meta property="og:url" content={canonicalURL} />
+<meta property="og:locale" content={ogLocale} />
+{alternateLinks.filter(link => link.lang !== currentLang).map(alt => (
+  <meta property="og:locale:alternate" content={getOgLocale(alt.lang as Language)} />
+))}
 <meta property="og:title" content={finalTitle} />
 <meta property="og:description" content={finalDescription} />
 <meta property="og:image" content={finalImage} />
@@ -109,9 +111,6 @@ const finalImage = pageImage || (postSlug
 {bing && <meta name="msvalidate.01" content={bing} />}
 {yandex && <meta name="yandex-verification" content={yandex} />}
 {baidu && <meta name="baidu-site-verification" content={baidu} />}
-
-<!-- Global View Transition -->
-<ClientRouter fallback="none" />
 
 <!-- Theme Toggle -->
 <script

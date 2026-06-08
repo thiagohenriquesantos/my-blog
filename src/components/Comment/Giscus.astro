@@ -113,7 +113,27 @@ function cleanupGiscus() {
   }
 }
 
-document.addEventListener('astro:page-load', setupGiscus)
+function maybeLoadGiscus() {
+  const root = document.getElementById('giscus')
+  if (!root) return
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries, observerInstance) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        observerInstance.disconnect()
+        requestIdleCallback ? requestIdleCallback(setupGiscus, { timeout: 3000 }) : setupGiscus()
+      }
+    }, { rootMargin: '400px' })
+    observer.observe(root)
+    return
+  }
+
+  (window as Window).addEventListener('load', () => {
+    requestIdleCallback ? requestIdleCallback(setupGiscus, { timeout: 3000 }) : setupGiscus()
+  })
+}
+
+document.addEventListener('astro:page-load', maybeLoadGiscus)
 document.addEventListener('astro:before-swap', cleanupGiscus)
 document.addEventListener('theme-changed', updateGiscusTheme)
 </script>

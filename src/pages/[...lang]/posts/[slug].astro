@@ -55,7 +55,6 @@ export async function getStaticPaths() {
       const postSlug = getPostSlug(post, post.data.lang as Language || defaultLocale as Language)
       for (const otherPost of posts) {
         if (otherPost.id === post.id) continue
-        const otherSlug = getPostSlug(otherPost, otherPost.data.lang as Language || defaultLocale as Language)
         const translations = otherPost.data.abbrlinkTranslations
         if (translations && Object.values(translations).includes(postSlug)) {
           // This post is a translation target of another post, use the same group
