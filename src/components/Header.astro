@@ -51,7 +51,7 @@ const navItems = [
     </div>
 
     <div class="site-header__utilities" aria-label="Site utilities">
-      <SearchModal />
+      <SearchModal lang={currentLang} />
       <LangToggle supportedLangs={supportedLangs} />
       <ThemeToggle lightModeColor={lightMode} darkModeColor={darkMode} />
     </div>
@@ -93,13 +93,13 @@ const navItems = [
   }
 
   .site-title {
-    font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-family: STIX, EarlySummer, ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-weight: 620;
+    letter-spacing: 0;
     color: var(--text-color);
     text-decoration: none;
-    font-size: 1.75rem;
-    line-height: 1.2;
+    font-size: var(--step-3);
+    line-height: var(--leading-tight);
     transition: opacity 0.2s ease, color 0.2s ease;
     white-space: nowrap;
   }
@@ -118,8 +118,8 @@ const navItems = [
   .site-description {
     margin: 0.75rem 0 1rem;
     color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: var(--step--1);
+    line-height: var(--leading-normal);
     max-width: 70ch;
     text-wrap: pretty;
     overflow-wrap: normal;
@@ -144,8 +144,9 @@ const navItems = [
     display: inline-block;
     text-decoration: none;
     color: var(--text-muted);
+    font-size: var(--step--1);
     font-weight: 600;
-    letter-spacing: 0.01em;
+    letter-spacing: 0;
     transition: color 0.2s ease, opacity 0.2s ease;
     padding: 0.15rem 0;
   }
@@ -164,7 +165,7 @@ const navItems = [
       flex-direction: column;
     }
     .site-title {
-      font-size: 1.6rem;
+      font-size: var(--step-2);
       white-space: normal;
     }
     .site-header__utilities {

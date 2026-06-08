@@ -1,115 +1,360 @@
 ---
-// Search component using Pagefind
+import type { Language } from '@/i18n/config'
+import { base } from '@/config'
+import { ui } from '@/i18n/ui'
+
+interface Props {
+  lang: Language
+  autofocus?: boolean
+  compact?: boolean
+  inputId?: string
+  resultsId?: string
+}
+
+const {
+  lang,
+  autofocus = false,
+  compact = false,
+  inputId = `site-search-${lang}`,
+  resultsId = `site-search-results-${lang}`,
+} = Astro.props
+const currentUI = ui[lang as keyof typeof ui] ?? ui.en
+const basePath = base || ''
 ---
 
-<div id="search" class="search-container">
-  <div class="search-input-wrapper">
+<section
+  class:list={[
+    'site-search',
+    compact ? 'site-search--compact' : '',
+  ]}
+  data-search-root
+  data-search-lang={lang}
+  data-search-base={basePath}
+  data-label-results={currentUI.searchResults}
+  data-label-empty={currentUI.searchEmpty}
+  data-label-initial={currentUI.searchInitial}
+  data-label-loading={currentUI.searchLoading}
+  data-label-no-results={currentUI.searchNoResults}
+  data-label-unavailable={currentUI.searchUnavailable}
+>
+  <label class="site-search__label" for={inputId}>{currentUI.search}</label>
+  <div class="site-search__field">
     <input
+      id={inputId}
+      class="site-search__input"
       type="search"
-      id="search-input"
-      placeholder="Search posts..."
-      class="search-input"
+      inputmode="search"
+      enterkeyhint="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder={currentUI.searchPlaceholder}
+      aria-describedby={`${resultsId}-status`}
+      aria-controls={resultsId}
+      data-search-input
+      data-autofocus={autofocus ? 'true' : undefined}
     />
-    <button id="search-clear" class="search-clear" aria-label="Clear search">×</button>
+    <button class="site-search__clear" type="button" aria-label="Clear search" data-search-clear hidden>
+      <span aria-hidden="true">×</span>
+    </button>
   </div>
-  <div id="search-results" class="search-results"></div>
-</div>
+  <p id={`${resultsId}-status`} class="site-search__status" role="status" aria-live="polite" data-search-status>
+    {currentUI.searchInitial}
+  </p>
+  <ol id={resultsId} class="site-search__results" data-search-results></ol>
+</section>
 
-<script>
-  import { PagefindUI } from "@pagefind/default-ui"
+<script is:inline>
+  ;(() => {
+  const SEARCH_RESULT_LIMIT = 8
+  const SEARCH_DEBOUNCE_MS = 120
 
-  // Initialize Pagefind when the page loads
-  document.addEventListener('DOMContentLoaded', () => {
-    const searchElement = document.getElementById('search')
-    if (searchElement) {
-      new PagefindUI({
-        element: "#search",
-        showImages: false,
-        showEmptyFilters: false,
-        translations: {
-          placeholder: "Search posts...",
-          clear_search: "Clear",
-          load_more: "Load more results",
-          search_label: "Search this site",
-          filters_label: "Filters",
-          zero_results: "No results for [SEARCH_TERM]",
-          many_results: "[COUNT] results for [SEARCH_TERM]",
-          one_result: "[COUNT] result for [SEARCH_TERM]",
-          alt_search: "No results for [SEARCH_TERM]. Showing results for [DIFFERENT_TERM] instead",
-          search_suggestion: "No results for [SEARCH_TERM]. Try one of these searches:",
-          searching: "Searching for [SEARCH_TERM]..."
-        }
-      })
+  function getFocusableResultLinks(root) {
+    return [...root.querySelectorAll('[data-search-results] a')]
+  }
+
+  function stripCurrentOrigin(url) {
+    try {
+      const parsed = new URL(url, window.location.origin)
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`
     }
-  })
+    catch {
+      return url
+    }
+  }
+
+  function excerptText(excerpt) {
+    const template = document.createElement('template')
+    template.innerHTML = excerpt || ''
+    return template.content.textContent?.replace(/\s+/g, ' ').trim() || ''
+  }
+
+  function renderResults(root, results, labels) {
+    const list = root.querySelector('[data-search-results]')
+    const status = root.querySelector('[data-search-status]')
+    if (!(list instanceof HTMLOListElement) || !(status instanceof HTMLElement)) return
+
+    list.textContent = ''
+
+    if (!results.length) {
+      status.textContent = labels.noResults
+      return
+    }
+
+    status.textContent = `${results.length} ${labels.results}`
+    const fragment = document.createDocumentFragment()
+
+    for (const result of results) {
+      const item = document.createElement('li')
+      const link = document.createElement('a')
+      const title = document.createElement('span')
+      const excerpt = document.createElement('span')
+
+      link.className = 'site-search__result'
+      link.href = stripCurrentOrigin(result.url)
+      title.className = 'site-search__result-title'
+      excerpt.className = 'site-search__result-excerpt'
+      title.textContent = result.meta?.title || result.url
+      excerpt.textContent = excerptText(result.excerpt)
+
+      link.append(title, excerpt)
+      item.append(link)
+      fragment.append(item)
+    }
+
+    list.append(fragment)
+  }
+
+  async function loadPagefind(basePath) {
+    const path = `${basePath}/pagefind/pagefind.js`.replace(/\/{2,}/g, '/')
+    return import(/* @vite-ignore */ path)
+  }
+
+  function initSearch(root) {
+    if (root.dataset.initialized === 'true') return
+    root.dataset.initialized = 'true'
+
+    const input = root.querySelector('[data-search-input]')
+    const clearButton = root.querySelector('[data-search-clear]')
+    const status = root.querySelector('[data-search-status]')
+
+    if (!(input instanceof HTMLInputElement) || !(status instanceof HTMLElement)) return
+
+    const labels = {
+      empty: root.dataset.labelEmpty || '',
+      initial: root.dataset.labelInitial || '',
+      loading: root.dataset.labelLoading || '',
+      noResults: root.dataset.labelNoResults || '',
+      results: root.dataset.labelResults || '',
+      unavailable: root.dataset.labelUnavailable || '',
+    }
+    const lang = root.dataset.searchLang
+    const basePath = root.dataset.searchBase || ''
+
+    let pagefindPromise
+    let activeQuery = ''
+    let timeout
+
+    async function search(query) {
+      activeQuery = query
+
+      if (!query) {
+        renderResults(root, [], { ...labels, noResults: labels.initial })
+        status.textContent = labels.initial
+        return
+      }
+
+      status.textContent = labels.loading
+
+      try {
+        pagefindPromise ||= loadPagefind(basePath)
+        const pagefind = await pagefindPromise
+        const options = lang ? { filters: { lang } } : undefined
+        let response = await pagefind.search(query, options)
+
+        if (response?.results?.length === 0 && lang) {
+          response = await pagefind.search(query)
+        }
+
+        if (query !== activeQuery) return
+
+        const data = await Promise.all(
+          (response?.results || [])
+            .slice(0, SEARCH_RESULT_LIMIT)
+            .map(result => result.data()),
+        )
+        renderResults(root, data, labels)
+      }
+      catch {
+        status.textContent = labels.unavailable
+      }
+    }
+
+    input.addEventListener('input', () => {
+      window.clearTimeout(timeout)
+      const query = input.value.trim()
+      if (clearButton instanceof HTMLButtonElement) clearButton.hidden = query.length === 0
+      timeout = window.setTimeout(() => search(query), SEARCH_DEBOUNCE_MS)
+    })
+
+    input.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowDown') return
+      const [firstLink] = getFocusableResultLinks(root)
+      if (!firstLink) return
+      event.preventDefault()
+      firstLink.focus()
+    })
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+
+      const links = getFocusableResultLinks(root)
+      const currentIndex = links.indexOf(document.activeElement)
+      if (currentIndex < 0) return
+
+      event.preventDefault()
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      const next = links[currentIndex + direction]
+      if (next) next.focus()
+      else input.focus()
+    })
+
+    clearButton?.addEventListener('click', () => {
+      input.value = ''
+      if (clearButton instanceof HTMLButtonElement) clearButton.hidden = true
+      renderResults(root, [], { ...labels, noResults: labels.initial })
+      status.textContent = labels.initial
+      input.focus()
+    })
+
+    if (input.dataset.autofocus === 'true') {
+      requestAnimationFrame(() => input.focus())
+    }
+  }
+
+  function initAllSearch() {
+    document.querySelectorAll('[data-search-root]').forEach(initSearch)
+  }
+
+  document.addEventListener('astro:page-load', initAllSearch)
+  initAllSearch()
+  })()
 </script>
 
 <style>
-  .search-container {
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 1rem;
-  }
-
-  .search-input-wrapper {
-    position: relative;
-    margin-bottom: 1rem;
-  }
-
-  .search-input {
+  .site-search {
     width: 100%;
-    padding: 0.75rem 2.5rem 0.75rem 1rem;
-    border: 1px solid var(--un-preset-theme-colors-secondary);
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    background: transparent;
-    color: var(--un-preset-theme-colors-secondary);
   }
 
-  .search-input:focus {
-    outline: none;
-    border-color: var(--un-preset-theme-colors-primary);
+  .site-search__label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
+    font-size: var(--step-1);
+    font-weight: 600;
+    line-height: var(--leading-tight);
   }
 
-  .search-clear {
+  .site-search--compact .site-search__label {
     position: absolute;
-    right: 0.75rem;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .site-search__field {
+    position: relative;
+  }
+
+  .site-search__input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem 2.75rem 0.75rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-color);
+    font: inherit;
+    font-size: var(--step-0);
+    line-height: var(--leading-normal);
+    letter-spacing: 0;
+  }
+
+  .site-search__input::placeholder {
+    color: var(--text-subtle);
+    opacity: 1;
+  }
+
+  .site-search__input:focus-visible {
+    outline: 0;
+    border-color: var(--text-color);
+    box-shadow: 0 1px 0 var(--text-color);
+  }
+
+  .site-search__clear {
+    position: absolute;
     top: 50%;
+    right: 0;
+    display: inline-grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
     transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--un-preset-theme-colors-secondary);
+    border: 0;
+    border-radius: 0.25rem;
+    background: transparent;
+    color: var(--text-muted);
     cursor: pointer;
+    font: inherit;
+    font-size: var(--step-1);
+  }
+
+  .site-search__clear:hover {
+    color: var(--text-color);
+  }
+
+  .site-search__status {
+    min-height: 1.5rem;
+    margin: 0.85rem 0 0;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: var(--leading-normal);
+  }
+
+  .site-search__results {
+    display: grid;
+    gap: 0.8rem;
+    margin: 1rem 0 0;
     padding: 0;
-    width: 1.5rem;
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    list-style: none;
   }
 
-  .search-results {
-    max-height: 400px;
-    overflow-y: auto;
+  .site-search__result {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-color);
+    color: inherit;
+    text-decoration: none;
   }
 
-  /* Pagefind UI overrides */
-  .pagefind-ui {
-    --pagefind-ui-scale: 1;
-    --pagefind-ui-primary: var(--un-preset-theme-colors-primary);
-    --pagefind-ui-text: var(--un-preset-theme-colors-secondary);
-    --pagefind-ui-background: transparent;
-    --pagefind-ui-border: var(--un-preset-theme-colors-secondary);
-    --pagefind-ui-border-width: 1px;
-    --pagefind-ui-border-radius: 0.5rem;
+  .site-search__result:hover .site-search__result-title {
+    color: var(--text-color);
   }
 
-  .pagefind-ui__result-link {
-    color: var(--un-preset-theme-colors-primary);
+  .site-search__result-title {
+    color: var(--text-color);
+    font-size: var(--step-0);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+    transition: color 0.15s ease;
   }
 
-  .pagefind-ui__result-link:hover {
-    text-decoration: underline;
+  .site-search__result-excerpt {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: var(--leading-normal);
   }
 </style>

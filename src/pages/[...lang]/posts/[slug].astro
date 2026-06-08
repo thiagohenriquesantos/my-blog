@@ -147,7 +147,7 @@ const { Content, headings, remarkPluginFrontmatter } = await render(post)
   articleDate={post.data.published.toISOString()}
   supportedLangs={supportedLangs}
 >
-  <article class="heti">
+  <article class="heti" data-pagefind-body data-pagefind-filter={`lang:${currentLang}`}>
     <div class="relative">
       <!-- Go Back Button On Desktop -->
       <BackButton />

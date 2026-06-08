@@ -17,7 +17,6 @@ interface Props {
 const { title: pageTitle, description: pageDescription, image: pageImage, articleDate } = Astro.props
 const { currentLang } = getPageInfo(Astro.url.pathname)
 const currentUI = ui[currentLang as keyof typeof ui] ?? {}
-const lang = currentLang === defaultLocale ? '' : `${currentLang}/`
 
 // Generate Canonical URL and localized alternate links
 const canonicalURL = getCanonicalUrl(Astro.url.pathname, Astro.url.origin)
@@ -29,7 +28,7 @@ const ogLocale = getOgLocale(getPageInfo(Astro.url.pathname).currentLang)
 const { title, subtitle, description, i18nTitle, author, favicon } = themeConfig.site
 const { mode: defaultMode, light: { background: lightMode }, dark: { background: darkMode } } = themeConfig.color
 const { katex: katexEnabled, reduceMotion } = themeConfig.global
-const { verification = {}, twitterID = '', googleAnalyticsID = '', umamiAnalyticsID = '', apiflashKey = '' } = themeConfig.seo ?? {}
+const { verification = {}, twitterID = '', googleAnalyticsID = '', umamiAnalyticsID = '' } = themeConfig.seo ?? {}
 const { google = '', bing = '', yandex = '', baidu = '' } = verification
 const { customGoogleAnalyticsJS = '', customUmamiAnalyticsJS = '' } = themeConfig.preload ?? {}
 
@@ -50,9 +49,7 @@ const postSlug = slugMatch ? slugMatch[1] : null
 
 const finalImage = pageImage || (postSlug
   ? new URL(`${base}/og/${postSlug}.png`, Astro.url.origin)
-  : apiflashKey
-    ? `https://api.apiflash.com/v1/urltoimage?access_key=${apiflashKey}&url=${Astro.url}&format=png&width=1500&height=788&ttl=259200&wait_until=network_idle&no_tracking=true`
-    : `https://api.apiflash.com/v1/urltoimage?access_key=02a837b6188f4ba0a7fd9fbeff03a83e&url=https://retypeset.radishzz.cc/${lang}&format=png&width=1500&height=788&ttl=604800&wait_until=network_idle&no_tracking=true`)
+  : new URL(`${base}/icons/og-logo.png`, Astro.url.origin))
 ---
 
 <head>
@@ -67,13 +64,12 @@ const finalImage = pageImage || (postSlug
 <meta name="author" content={author} />
 <meta name="generator" content={Astro.generator} />
 <meta name="theme-color" content={metaTheme} />
+<meta data-pagefind-filter="lang" content={currentLang} />
+<meta data-pagefind-meta="lang" content={currentLang} />
 
 <!-- Preload -->
 <link rel="preload" href={`${base}/fonts/EarlySummer-VF-Split/EarlySummer-VF-Subset.woff2`} as="font" type="font/woff2" crossorigin />
-<link rel="preload" href={`${base}/fonts/Snell-Black-SF.woff2`} as="font" type="font/woff2" crossorigin />
-<link rel="preload" href={`${base}/fonts/Snell-Bold-SF.woff2`} as="font" type="font/woff2" crossorigin />
 <link rel="preload" href={`${base}/fonts/STIX-VF.woff2`} as="font" type="font/woff2" crossorigin />
-<link rel="preload" href={`${base}/fonts/STIX-Italic-VF.woff2`} as="font" type="font/woff2" crossorigin />
 {katexEnabled && <link rel="stylesheet" href={katexCSS} media="print" onload={`this.media='all'`} />}
 
 <!-- Site Links -->

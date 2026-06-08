@@ -1,0 +1,40 @@
+---
+import SearchComponent from '@/components/Search.astro'
+import { allLocales } from '@/config'
+import { getLangFromLocale, getLangRouteParam } from '@/i18n/lang'
+import { ui } from '@/i18n/ui'
+import Layout from '@/layouts/Layout.astro'
+
+export async function getStaticPaths() {
+  return allLocales.map(lang => ({
+    params: { lang: getLangRouteParam(lang) },
+  }))
+}
+
+const currentLang = getLangFromLocale(Astro.currentLocale)
+const currentUI = ui[currentLang as keyof typeof ui] ?? ui.en
+---
+
+<Layout title={currentUI.search} description={currentUI.searchInitial}>
+  <section class="search-page" data-pagefind-ignore>
+    <h1>{currentUI.search}</h1>
+    <SearchComponent lang={currentLang} inputId={`search-page-${currentLang}`} resultsId={`search-page-results-${currentLang}`} />
+  </section>
+</Layout>
+
+<style>
+  .search-page {
+    width: min(100%, 42rem);
+    margin: 0 auto;
+    padding-top: 1rem;
+  }
+
+  .search-page h1 {
+    margin: 0 0 1.5rem;
+    color: var(--text-color);
+    font-size: var(--step-4);
+    font-weight: 620;
+    line-height: var(--leading-tight);
+    letter-spacing: 0;
+  }
+</style>

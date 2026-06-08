@@ -32,25 +32,25 @@ export const themeConfig: ThemeConfig = {
       // primary color
       // used for title, hover, etc
       // oklch color picker: https://oklch.com/
-      primary: 'oklch(15% 0.01 0)',
+      primary: '#111111',
       // secondary color
       // used for post text
-      secondary: 'oklch(45% 0.01 0)',
+      secondary: '#3f3f3f',
       // background color
-      background: 'oklch(98% 0.001 0)',
+      background: '#fbfaf7',
       // highlight color
       // used for navbar, selected text, etc
-      highlight: 'oklch(90% 0.15 60 / 0.5)',
+      highlight: 'rgb(17 17 17 / 0.08)',
     },
     dark: {
       // primary color
-      primary: 'oklch(95% 0.01 0)',
+      primary: '#f4f1ea',
       // secondary color
-      secondary: 'oklch(75% 0.01 0)',
+      secondary: '#c9c4b8',
       // background color
-      background: 'oklch(12% 0.01 0)',
+      background: '#101010',
       // highlight color
-      highlight: 'oklch(90% 0.15 60 / 0.3)',
+      highlight: 'rgb(244 241 234 / 0.12)',
     },
   },
   // COLOR SETTINGS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> END
@@ -63,7 +63,7 @@ export const themeConfig: ThemeConfig = {
     // not fill in the locale code above again, can be an empty array []
     moreLocales: ['pt'], // ['de', 'en', 'es', 'fr', 'ja', 'ko', 'pl', 'pt', 'ru', 'zh', 'zh-tw']
     // post font style
-    fontStyle: 'sans', // sans | serif
+    fontStyle: 'serif', // sans | serif
     // post date format
     dateFormat: 'YYYY-MM-DD', // YYYY-MM-DD | MM-DD-YYYY | DD-MM-YYYY | MMM D YYYY | D MMM YYYY
     // enable table of contents

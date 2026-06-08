@@ -6,6 +6,15 @@ interface Translation {
   tags: string
   about: string
   toc: string
+  search: string
+  searchPlaceholder: string
+  searchEmpty: string
+  searchInitial: string
+  searchLoading: string
+  searchResults: string
+  searchNoResults: string
+  searchUnavailable: string
+  searchClose: string
 }
 
 export const ui: Record<'en' | 'pt', Translation> = {
@@ -18,6 +27,15 @@ export const ui: Record<'en' | 'pt', Translation> = {
     tags: 'Tags',
     about: 'About',
     toc: 'Table of Contents',
+    search: 'Search',
+    searchPlaceholder: 'Search essays and notes',
+    searchEmpty: 'Type a term to search the archive.',
+    searchInitial: 'Search across every indexed article in English.',
+    searchLoading: 'Searching...',
+    searchResults: 'results',
+    searchNoResults: 'No results found.',
+    searchUnavailable: 'Search is available after the static index is generated.',
+    searchClose: 'Close search',
   },
   pt: {
     title: 'Thiago Colman',
@@ -28,7 +46,15 @@ export const ui: Record<'en' | 'pt', Translation> = {
     tags: 'Tags',
     about: 'Sobre',
     toc: 'Sumário',
+    search: 'Busca',
+    searchPlaceholder: 'Buscar artigos e notas',
+    searchEmpty: 'Digite um termo para buscar no arquivo.',
+    searchInitial: 'Busque em todos os artigos indexados em português.',
+    searchLoading: 'Buscando...',
+    searchResults: 'resultados',
+    searchNoResults: 'Nenhum resultado encontrado.',
+    searchUnavailable: 'A busca fica disponível depois que o índice estático é gerado.',
+    searchClose: 'Fechar busca',
   },
 }
-
 

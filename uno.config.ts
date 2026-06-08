@@ -43,7 +43,7 @@ export default defineConfig({
       // More minimalist + readable than the decorative script font
       title: ['STIX', 'EarlySummer-Subset', 'EarlySummer', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
       navbar: ['STIX-Italic', 'EarlySummer-Subset', 'EarlySummer', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
-      time: ['Snell-Bold', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+      time: ['STIX', 'EarlySummer-Subset', 'EarlySummer', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
       serif: ['STIX', 'EarlySummer', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
     },
   },
@@ -55,8 +55,8 @@ export default defineConfig({
   ],
   shortcuts: {
     'uno-desktop-column': 'fixed right-[max(5rem,calc(50vw-35rem))] w-14rem',
-    'uno-decorative-line': 'mb-4.5 h-0.25 w-10 bg-secondary/25 lg:(mb-6 w-11)',
-    'uno-round-border': 'border border-secondary/5 rounded border-solid',
+    'uno-decorative-line': 'mb-4.5 h-px w-full bg-secondary/15 lg:mb-6',
+    'uno-round-border': 'border border-secondary/12 rounded-sm border-solid',
   },
   variants: [
     (matcher) => {

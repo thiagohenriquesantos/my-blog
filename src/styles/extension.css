@@ -2,7 +2,7 @@
 .gc-container {
   --at-apply: 'my-6 block overflow-x-auto uno-round-border bg-secondary/5 px-5 py-4 transition-colors ease-out hover:(bg-secondary/10 c-primary) lg:(px-6 py-5)';
   scrollbar-width: thin;
-  scrollbar-color: oklch(var(--un-preset-theme-colors-secondary) / 0.15) transparent;
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 18%, transparent) transparent;
 }
 :is(h1, h2, h3, h4, h5, h6, .gc-container) + .gc-container {
   --at-apply: 'mt-4';
