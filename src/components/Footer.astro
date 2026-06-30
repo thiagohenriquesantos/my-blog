@@ -20,14 +20,16 @@ const socialLinks = links.map(({ name, url }) => {
   let ariaLabel = ''
   if (isRSS) {
     ariaLabel = 'Subscribe to RSS feed'
-  } else if (isEmail) {
+  }
+ else if (isEmail) {
     ariaLabel = 'Send email'
-  } else {
+  }
+ else {
     const ariaLabels: Record<string, string> = {
-      'GitHub': 'Visit my GitHub profile',
-      'X': 'Follow me on X (Twitter)',
-      'Instagram': 'Follow me on Instagram',
-      'Email': 'Send me an email'
+      GitHub: 'Visit my GitHub profile',
+      X: 'Follow me on X (Twitter)',
+      Instagram: 'Follow me on Instagram',
+      Email: 'Send me an email',
     }
     ariaLabel = ariaLabels[name] || `Visit ${name}`
   }
@@ -41,8 +43,8 @@ const socialLinks = links.map(({ name, url }) => {
     return {
       name,
       href,
-      target: '_blank',
-      rel: 'noopener noreferrer',
+      'target': '_blank',
+      'rel': 'noopener noreferrer',
       'aria-label': ariaLabel,
     }
   }
@@ -70,24 +72,75 @@ const socialLinks = links.map(({ name, url }) => {
 })
 ---
 
-<footer
-  class="text-3 leading-1.25em font-navbar"
-  lg="uno-desktop-column bottom-20 text-3.5"
->
-  <p>
+<footer class="site-footer">
+  <nav class="site-footer__social" aria-label="Social links">
     {socialLinks.map((link, index) => (
       <>
-        <a class="highlight-hover py-0.8 transition-colors after:bottom-0.35em hover:c-primary" {...link}>{link.name}</a>
-        {index < socialLinks.length - 1 && '/'}
+        <a class="site-footer__link highlight-hover" {...link}>{link.name}</a>
+        {index < socialLinks.length - 1 && <span class="site-footer__separator" aria-hidden="true">/</span>}
       </>
     ))}
-  </p>
+  </nav>
 
-  <p>
+  <p class="site-footer__copyright">
     © {year} {author}
   </p>
 
-  <p>
-    Powered by <a class="highlight-hover py-0.8 transition-colors after:bottom-0.35em hover:c-primary" href="https://astro.build/" target="_blank" rel="noopener noreferrer" data-umami-event="outbound-link-click" data-umami-event-url="https://astro.build/">Astro</a> and <a class="highlight-hover py-0.8 transition-colors after:bottom-0.35em hover:c-primary" href="https://github.com/radishzzz/astro-theme-retypeset" target="_blank" rel="noopener noreferrer" data-umami-event="outbound-link-click" data-umami-event-url="https://github.com/radishzzz/astro-theme-retypeset">Retypeset</a>
+  <p class="site-footer__meta">
+    Powered by <a class="site-footer__link highlight-hover" href="https://astro.build/" target="_blank" rel="noopener noreferrer" data-umami-event="outbound-link-click" data-umami-event-url="https://astro.build/">Astro</a> and <a class="site-footer__link highlight-hover" href="https://github.com/radishzzz/astro-theme-retypeset" target="_blank" rel="noopener noreferrer" data-umami-event="outbound-link-click" data-umami-event-url="https://github.com/radishzzz/astro-theme-retypeset">Retypeset</a>
   </p>
 </footer>
+
+<style>
+  .site-footer {
+    margin-top: 4.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-subtle);
+    font-family: var(--font-sans);
+    font-size: var(--step--2);
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .site-footer__social {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.65rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .site-footer__link {
+    color: var(--text-muted);
+    padding: 0.15rem 0;
+    text-decoration: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .site-footer__link::after {
+    bottom: 0.18em;
+  }
+
+  .site-footer__link:hover {
+    color: var(--text-color);
+  }
+
+  .site-footer__separator {
+    color: var(--text-subtle);
+    opacity: 0.55;
+  }
+
+  .site-footer__copyright,
+  .site-footer__meta {
+    margin: 0.35rem 0 0;
+  }
+
+  @media (min-width: 768px) {
+    .site-footer {
+      margin-top: 5.5rem;
+      padding-top: 2.25rem;
+    }
+  }
+</style>

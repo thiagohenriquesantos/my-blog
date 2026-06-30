@@ -4,8 +4,8 @@ import type { Post } from '@/types'
 import PinIcon from '@/assets/icons/pin-icon.svg'
 import PostDate from '@/components/PostDate.astro'
 import { getPostPath } from '@/i18n/path'
-import { getPostDescription } from '@/utils/description'
 import { getPostSlug } from '@/utils/content'
+import { getPostDescription } from '@/utils/description'
 import { isHomePage } from '@/utils/page'
 
 export interface Props {
@@ -18,43 +18,45 @@ const { posts, lang, pinned = false } = Astro.props
 const isHome = isHomePage(Astro.url.pathname)
 ---
 
-<ul>
+<ul class="post-list">
   {posts.map((post) => {
     const slug = getPostSlug(post, lang)
 
     return (
-      <li
-        class:list={[
-          'mb-8',
-          isHome ? 'lg:mb-12' : '',
-        ]}
-      >
-        {/* post title */}
-        <h3 class="inline transition-colors hover:c-primary">
-          <a
-            class:list={[
-              'cjk:tracking-wide',
-              isHome ? 'lg:font-medium lg:text-4.5' : '',
-            ]}
-            href={getPostPath(slug, lang)}
-            transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
-            data-disable-theme-toggle-transition
-          >
-            {post.data.title}
-          </a>
-          {/* pinned icon */}
-          {pinned && (
-            <PinIcon
-              aria-hidden="true"
-              class="ml-0.25em inline-block aspect-square w-0.98em translate-y--0.1em lg:(w-1.05em translate-y--0.15em)"
-              fill="currentColor"
+      <li class:list={['post-list__item', isHome ? 'post-list__item--home' : '']}>
+        <div class="post-list__heading-row">
+          {/* post title */}
+          <h3 class="post-list__title">
+            <a
+              class="post-list__link cjk:tracking-wide"
+              href={getPostPath(slug, lang)}
+              transition:name={`post-${slug}${lang ? `-${lang}` : ''}`}
+              data-disable-theme-toggle-transition
+            >
+              {post.data.title}
+            </a>
+            {/* pinned icon */}
+            {pinned && (
+              <PinIcon
+                aria-hidden="true"
+                class="ml-0.25em inline-block aspect-square w-0.98em translate-y--0.1em lg:(w-1.05em translate-y--0.15em)"
+                fill="currentColor"
+              />
+            )}
+          </h3>
+
+          {/* desktop post time */}
+          <div class="post-list__meta post-list__meta--desktop">
+            <PostDate
+              date={post.data.published}
+              minutes={post.remarkPluginFrontmatter.minutes}
             />
-          )}
-        </h3>
+          </div>
+        </div>
 
         {/* mobile post time */}
         <div
-          class="py-0.8 text-3.5 font-time lg:hidden"
+          class="post-list__meta post-list__meta--mobile"
           transition:name={`time-${slug}${lang ? `-${lang}` : ''}`}
           data-disable-theme-toggle-transition
         >
@@ -64,20 +66,9 @@ const isHome = isHomePage(Astro.url.pathname)
           />
         </div>
 
-        {/* desktop post time */}
-        <div class="hidden text-3.65 font-time lg:(ml-2.5 inline)">
-          <PostDate
-            date={post.data.published}
-            minutes={post.remarkPluginFrontmatter.minutes}
-          />
-        </div>
-
-        {/* desktop post description */}
+        {/* post description */}
         {isHome && (
-          <div
-            class="heti hidden"
-            lg="mt-2.25 block"
-          >
+          <div class="post-list__description">
             <p>{getPostDescription(post, 'list')}</p>
           </div>
         )}
@@ -85,3 +76,95 @@ const isHome = isHomePage(Astro.url.pathname)
     )
   })}
 </ul>
+
+<style>
+  .post-list {
+    display: grid;
+    gap: 2.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .post-list__item {
+    max-width: 68ch;
+  }
+
+  .post-list__item--home {
+    padding-bottom: 0.15rem;
+  }
+
+  .post-list__heading-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  .post-list__title {
+    margin: 0;
+    color: var(--text-color);
+    font-family: var(--font-serif);
+    font-size: var(--step-1);
+    font-weight: 620;
+    line-height: var(--leading-tight);
+  }
+
+  .post-list__link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .post-list__link:hover {
+    color: var(--un-preset-theme-colors-primary);
+  }
+
+  .post-list__meta {
+    color: var(--text-subtle);
+    font-family: var(--font-sans);
+    font-size: var(--step--2);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .post-list__meta--desktop {
+    display: none;
+    flex: 0 0 auto;
+  }
+
+  .post-list__meta--mobile {
+    margin-top: 0.55rem;
+  }
+
+  .post-list__description {
+    max-width: 66ch;
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: var(--step--1);
+    line-height: var(--leading-normal);
+  }
+
+  .post-list__description p {
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .post-list {
+      gap: 3.1rem;
+    }
+
+    .post-list__title {
+      font-size: var(--step-2);
+      font-weight: 560;
+    }
+
+    .post-list__meta--desktop {
+      display: inline-block;
+    }
+
+    .post-list__meta--mobile {
+      display: none;
+    }
+  }
+</style>
