@@ -138,5 +138,5 @@ It is in the ability to make today, the right now, completely new.
 ---
 
 **Thiago Colman**  
-Software Engineer III  
+Software Engineer  
 https://thiagocolman.com

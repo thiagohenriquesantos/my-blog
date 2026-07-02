@@ -138,5 +138,5 @@ Ele está na capacidade de tornar o hoje, o agora, completamente novo.
 ---
 
 **Thiago Colman**  
-Software Engineer III  
+Software Engineer  
 https://thiagocolman.com.br
