@@ -1,0 +1,250 @@
+---
+/**
+ * BlogPost Component
+ * Semantic blog post layout with:
+ * - Attributify syntax for clean styling
+ * - Accessibility first (WCAG AA+)
+ * - Integration support (KaTeX, Pagefind, Waline/Twikoo, Mermaid)
+ */
+
+interface Props {
+  title: string
+  excerpt?: string
+  author?: string
+  date?: Date
+  readingTime?: string
+  tags?: string[]
+  commentEnabled?: boolean
+}
+
+const {
+  title,
+  excerpt,
+  author,
+  date,
+  readingTime,
+  tags = [],
+  commentEnabled = true,
+} = Astro.props
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+const tagLink = (tag: string) => `/tags/${tag.toLowerCase()}/`
+---
+
+<article class="blog-post" role="main">
+  <header class="blog-post__header">
+    <h1 prose-title class="blog-post__title">{title}</h1>
+
+    {(author || date || readingTime) && (
+      <div class="blog-post__meta" aria-label="Article metadata">
+        {author && (
+          <span class="blog-post__author" itemprop="author">
+            By {author}
+          </span>
+        )}
+
+        {date && (
+          <time
+            class="blog-post__date"
+            datetime={date.toISOString()}
+            itemprop="datePublished"
+          >
+            {formatDate(date)}
+          </time>
+        )}
+
+        {readingTime && (
+          <span class="blog-post__reading-time" aria-label="Estimated reading time">
+            {readingTime}
+          </span>
+        )}
+      </div>
+    )}
+
+    {excerpt && (
+      <p class="blog-post__excerpt" itemprop="description">
+        {excerpt}
+      </p>
+    )}
+
+    <div class="blog-post__divider" aria-hidden="true"></div>
+  </header>
+
+  <div class="blog-post__content heti" itemprop="articleBody">
+    <slot />
+  </div>
+
+  <footer class="blog-post__footer">
+    {tags.length > 0 && (
+      <div class="blog-post__tags" role="list" aria-label="Article tags">
+        {tags.map(tag => (
+          <a
+            href={tagLink(tag)}
+            class="blog-post__tag-link"
+            role="listitem"
+          >
+            #{tag}
+          </a>
+        ))}
+      </div>
+    )}
+
+    {commentEnabled && (
+      <div class="blog-post__comments-section">
+        <h2 id="comments-title" class="blog-post__comments-title">
+          Comments
+        </h2>
+        <div id="comment-container" role="region" aria-labelledby="comments-title">
+        </div>
+      </div>
+    )}
+  </footer>
+</article>
+
+<style>
+  .blog-post__header {
+    margin-bottom: 3rem;
+  }
+
+  .blog-post__title {
+    margin-bottom: 1rem;
+    line-height: var(--leading-tight);
+  }
+
+  .blog-post__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .blog-post__author,
+  .blog-post__date,
+  .blog-post__reading-time {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .blog-post__author::after,
+  .blog-post__date::after {
+    content: '·';
+    margin-left: 1rem;
+  }
+
+  .blog-post__author:last-child::after,
+  .blog-post__reading-time::after {
+    content: '';
+    margin-left: 0;
+  }
+
+  .blog-post__excerpt {
+    font-size: var(--step-0);
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: var(--leading-relaxed);
+  }
+
+  .blog-post__divider {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      to right,
+      var(--border-color),
+      transparent
+    );
+    margin: 2rem 0;
+  }
+
+  .blog-post__content {
+    margin-bottom: 3rem;
+  }
+
+  .blog-post__footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .blog-post__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .blog-post__tag-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--surface-color);
+    color: var(--text-muted);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-size: var(--step--1);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .blog-post__tag-link:hover {
+    background-color: var(--highlight-color);
+    color: var(--text-color);
+    border-color: var(--text-muted);
+  }
+
+  .blog-post__tag-link:focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 2px;
+  }
+
+  .blog-post__comments-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
+
+  .blog-post__comments-title {
+    font-size: var(--step-2);
+    font-family: var(--font-serif);
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .blog-post__header {
+      margin-bottom: 2rem;
+    }
+
+    .blog-post__meta {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .blog-post__author::after,
+    .blog-post__date::after {
+      content: '';
+      margin-left: 0;
+    }
+
+    .blog-post__footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+
+    .blog-post__tags {
+      gap: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blog-post__tag-link {
+      transition: none;
+    }
+  }
+</style>
